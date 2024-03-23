@@ -3,6 +3,7 @@ import pymunk
 from pymunk import Vec2d
 
 import config
+from ball import Ball
 
 import cProfile
 import pstats
@@ -17,6 +18,7 @@ COLLTYPE_BALL = 2
 class State(Enum):
     ARUCO = 0
     RUNNING = 1
+    PAUSE = 2
 
 
 def check_coll(obj1, obj2):
@@ -31,6 +33,13 @@ def flipy(y):
 def mouse_coll_func(arbiter, space, data):
     pass
 
+def add_line(p1, p2, space):
+    line = pymunk.Segment(
+        space.static_body, p1, p2, 0.0
+    )
+    line.friction = 0.99
+    space.add(line)
+    return line
 
 def main():
     pg.init()
@@ -46,56 +55,37 @@ def main():
     balls = []
     
     ### Static line
-    line_point1 = None
+    prev_point = None
     static_lines = []
     run_physics = True
 
-    while running:
+    while running != State.PAUSE:
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                running = False
+                running = State.PAUSE
             elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-                running = False
+                running = State.PAUSE
             elif event.type == pg.KEYDOWN and event.key == pg.K_p:
                 pg.image.save(screen, "balls_and_lines.png")
             elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-                p = event.pos[X], flipy(event.pos[Y])
-                body = pymunk.Body(10, 100)
-                body.position = p
-                shape = pymunk.Circle(body, 10, (0, 0))
-                shape.friction = 0.5
-                shape.collision_type = COLLTYPE_BALL
-                space.add(body, shape)
-                balls.append(shape)
+                x, y = event.pos[X], flipy(event.pos[Y])
+                balls.append(Ball(x, y, space).shape)
 
-            elif event.type == pg.MOUSEBUTTONDOWN and event.button == 3:
-                if line_point1 is None:
-                    line_point1 = Vec2d(event.pos[X], flipy(event.pos[Y]))
             elif event.type == pg.MOUSEBUTTONUP and event.button == 3:
-                if line_point1 is not None:
-
-                    line_point2 = Vec2d(event.pos[X], flipy(event.pos[Y]))
-                    shape = pymunk.Segment(
-                        space.static_body, line_point1, line_point2, 0.0
-                    )
-                    shape.friction = 0.99
-                    space.add(shape)
-                    static_lines.append(shape)
-                    line_point1 = None
+                    prev_point = None
+                    
 
             elif event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 run_physics = not run_physics
 
+        if pg.mouse.get_pressed()[2]:
+            new_point = Vec2d(event.pos[X], flipy(event.pos[Y]))
+            if prev_point is not None:
+                line = add_line(prev_point, new_point, space)
+                static_lines.append(line)
+            prev_point = new_point
         p = pg.mouse.get_pos()
         mouse_pos = Vec2d(p[X], flipy(p[Y]))
-
-        if pg.key.get_mods() & pg.KMOD_SHIFT and pg.mouse.get_pressed()[0]:
-            body = pymunk.Body(10, 10)
-            body.position = mouse_pos
-            shape = pymunk.Circle(body, 10, (0, 0))
-            shape.collision_type = COLLTYPE_BALL
-            space.add(body, shape)
-            balls.append(shape)
 
         ### Update physics
         if run_physics:
@@ -119,7 +109,7 @@ Space: Pause physics simulation"""
             y += 10
 
         for ball in balls:
-            r = ball.radius
+            r = ball.radius 
             v = ball.body.position
             rot = ball.body.rotation_vector
             p = int(v.x), int(flipy(v.y))
@@ -128,10 +118,10 @@ Space: Pause physics simulation"""
             pg.draw.circle(screen, pg.Color("blue"), p, int(r), 2)
             pg.draw.line(screen, pg.Color("red"), p, p2)
 
-        if line_point1 is not None:
-            p1 = int(line_point1.x), int(flipy(line_point1.y))
-            p2 = mouse_pos.x, flipy(mouse_pos.y)
-            pg.draw.lines(screen, pg.Color("black"), False, [p1, p2])
+        # if line_point1 is not None:
+        #     p1 = int(line_point1.x), int(flipy(line_point1.y))
+        #     p2 = mouse_pos.x, flipy(mouse_pos.y)
+        #     pg.draw.lines(screen, pg.Color("black"), False, [p1, p2])
 
         for line in static_lines:
             body = line.body
