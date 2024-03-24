@@ -1,7 +1,6 @@
 import pygame as pg
 import pymunk 
 
-
 class Ball:
     def __init__(self, x, y, space, radius=10) -> None:
         mass = 10
