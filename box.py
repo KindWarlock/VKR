@@ -21,7 +21,6 @@ class Box:
         self.balls = []
 
     def is_inside(self, ball) -> bool:
-        # Collision with pygame
         ball_x = ball.body.position[0]
         ball_y = flipy(ball.body.position[1])
         is_higher = ball_y + ball.radius < self.rect[1]
@@ -40,7 +39,7 @@ class Box:
         self.balls.append(ball)
         self.color = (0, 255, 0)
         return True
-    
+
 
     def draw(self) -> None:
         x, y, w, h = self.rect

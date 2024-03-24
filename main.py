@@ -27,9 +27,6 @@ def check_coll(obj1, obj2):
     pass
 
 
-def mouse_coll_func(arbiter, space, data):
-    pass
-
 def add_line(p1, p2, space):
     line = pymunk.Segment(
         space.static_body, p1, p2, 0.0
@@ -38,14 +35,16 @@ def add_line(p1, p2, space):
     space.add(line)
     return line
 
+
 def display_text(screen, score):
     font = pg.font.Font(None, 16)
     text = f"""LMB: Create ball
-LMB + Shift: Create many balls
-RMB: Drag to create wall, release to finish
-Space: Pause physics simulation
+    LMB + Shift: Create many balls
+    RMB: Drag to create wall, release to finish
+    Space: Pause physics simulation
 
-SCORE: {score}"""
+    SCORE: {score}"""
+    
     y = 5
     for line in text.splitlines():
         text = font.render(line, True, pg.Color("black"))
@@ -57,7 +56,7 @@ def main():
     pg.init()
     screen = pg.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
     clock = pg.time.Clock()
-    running = State.RUNNING
+    state = State.state
 
     ### Physics stuff
     space = pymunk.Space()
@@ -69,15 +68,15 @@ def main():
     ### Static line
     prev_point = None
     static_lines = []
-    run_physics = True
+
     box = Box(space, screen, 400, 400, 100, 50)
 
     score = 0
-    while running != State.PAUSE:
+    while state != State.PAUSE:
         for event in pg.event.get():
             if (event.type == pg.QUIT) or (
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
-                running = State.PAUSE
+                state = State.PAUSE
             elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 x, y = event.pos[X], flipy(event.pos[Y])
                 balls.append(Ball(x, y, space).shape)
@@ -91,7 +90,6 @@ def main():
                 static_lines.append(line)
             prev_point = new_point
         p = pg.mouse.get_pos()
-        mouse_pos = Vec2d(p[X], flipy(p[Y]))
 
         ### Update physics
         dt = 1.0 / 60.0
