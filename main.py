@@ -1,30 +1,29 @@
 import pygame as pg
-import pymunk 
+import pymunk
 from pymunk import Vec2d
+import numpy as np
 
 import config
-from ball import Ball
-from box import Box
-from utils import flipy
+from objects.ball import Ball
+from objects.box import Box
+from utils import flipy, normalize
+from objects.attractor import Attractor
 
 import cProfile
 import pstats
 from enum import Enum
 
 X, Y = 0, 1
-### Physics collision types
+# Physics collision types
 COLLTYPE_DEFAULT = 0
 COLLTYPE_MOUSE = 1
 COLLTYPE_BALL = 2
 
+
 class State(Enum):
     ARUCO = 0
-    RUNNING = 1
+    state = 1
     PAUSE = 2
-
-
-def check_coll(obj1, obj2):
-    pass
 
 
 def add_line(p1, p2, space):
@@ -44,10 +43,10 @@ def display_text(screen, score):
     Space: Pause physics simulation
 
     SCORE: {score}"""
-    
+
     y = 5
     for line in text.splitlines():
-        text = font.render(line, True, pg.Color("black"))
+        text = font.render(line, True, (128, 128, 128))
         screen.blit(text, (5, y))
         y += 10
 
@@ -58,30 +57,39 @@ def main():
     clock = pg.time.Clock()
     state = State.state
 
-    ### Physics stuff
+    # Physics stuff
     space = pymunk.Space()
     space.gravity = 0.0, config.GRAVITY
 
-    ## Balls
+    # Balls
     balls = []
-    
-    ### Static line
+
+    planet = Attractor(space)
+    planet1 = Attractor(space, (500, 600))
+
+    planets = [planet]
     prev_point = None
     static_lines = []
 
-    box = Box(space, screen, 400, 400, 100, 50)
+    box = Box(space, screen, 400, 400, config.BOX_WIDTH, config.BOX_HEIGHT)
 
     score = 0
+
+    BALL_SPAWN = pg.USEREVENT + 1
+    pg.time.set_timer(BALL_SPAWN, 5000)
     while state != State.PAUSE:
         for event in pg.event.get():
             if (event.type == pg.QUIT) or (
-                event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
+                    event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                 state = State.PAUSE
             elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 x, y = event.pos[X], flipy(event.pos[Y])
-                balls.append(Ball(x, y, space).shape)
+                balls.append(Ball(x, y, space, screen))
             elif event.type == pg.MOUSEBUTTONUP and event.button == 3:
-                    prev_point = None
+                prev_point = None
+
+            if event.type == BALL_SPAWN:
+                balls.append(Ball.spawn(space, screen))
 
         if pg.mouse.get_pressed()[2]:
             new_point = Vec2d(event.pos[X], flipy(event.pos[Y]))
@@ -91,30 +99,30 @@ def main():
             prev_point = new_point
         p = pg.mouse.get_pos()
 
-        ### Update physics
+        for ball in balls:
+            for p in planets:
+
+                v = p.position - ball.body.position
+                v_norm = v.normalized()
+                dt = 1.0 / 60.0
+
+                pymunk.Body.update_velocity(
+                    ball.body, p.get_force(ball) * v_norm + space.gravity, 0.99, dt)
+
         dt = 1.0 / 60.0
         for x in range(1):
             space.step(dt)
 
-        ### Draw stuff
+        # DRAWING
         screen.fill(pg.Color("white"))
 
-        # Display some text
-        display_text(screen, score)
-        
+        for p in planets:
+            p.draw_shape(screen)
 
         for ball in balls:
-            r = ball.radius 
-            v = ball.body.position
-            rot = ball.body.rotation_vector
-            p = int(v.x), int(flipy(v.y))
-            p2 = p + Vec2d(rot.x, -rot.y) * r * 0.9
-            p2 = int(p2.x), int(p2.y)
-            pg.draw.circle(screen, pg.Color("blue"), p, int(r), 2)
-            pg.draw.line(screen, pg.Color("red"), p, p2)
-
-            if box.is_inside(ball):
+            if ball.in_box(box, balls, ball):
                 score += 1
+            ball.draw()
 
         for line in static_lines:
             body = line.body
@@ -125,7 +133,10 @@ def main():
             pg.draw.lines(screen, pg.Color("lightgray"), False, [p1, p2])
 
         box.draw()
-        ### Flip screen
+
+        display_text(screen, score)
+
+        # Flip screen
         pg.display.flip()
         clock.tick(50)
         pg.display.set_caption("fps: " + str(clock.get_fps()))
