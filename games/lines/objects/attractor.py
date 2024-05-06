@@ -1,7 +1,7 @@
 import pygame as pg
 import pymunk
 from scipy.constants import G
-from utils import flipy
+from utils.utils import flipy
 
 
 class Attractor(pg.sprite.Sprite):
@@ -15,17 +15,21 @@ class Attractor(pg.sprite.Sprite):
         self.body = pymunk.Body(mass, 0, pymunk.Body.STATIC)
         self.body.position = self.position
 
-        self.radius = radius
+        self.radius = int(radius)
         self.shape = pymunk.Circle(self.body, radius, (0, 0))
         self.shape.friction = 10
         self.shape.elasticity = 0
         space.add(self.body, self.shape)
+        self.space = space
 
     def draw_shape(self, screen):
-        pos = (self.position[0], flipy(self.position[1]))
-        pg.draw.circle(screen, (217, 143, 82), pos, self.radius)
+        pos = (self.body.position.x, flipy(self.body.position.y))
+        pg.draw.circle(screen, pg.Color('yellow'), pos, self.radius)
 
     def get_force(self, ball):
         center = self.body.local_to_world(self.body.center_of_gravity)
         dist = center.get_distance(ball.body.position)
         return G * self.mass * ball.body.mass / (dist * dist)
+
+    def delete(self):
+        self.space.remove(self.shape, self.body)

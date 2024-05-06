@@ -1,7 +1,7 @@
 import pygame as pg
 import pymunk
 
-from utils import flipy
+from utils.utils import flipy
 import config
 
 

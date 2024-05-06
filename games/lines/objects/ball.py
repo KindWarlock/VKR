@@ -6,7 +6,7 @@ from threading import Timer
 import random
 
 import config
-from utils import flipy
+from utils.utils import flipy
 
 
 class Ball:
@@ -29,7 +29,7 @@ class Ball:
 
     def draw(self):
         x, y = self.body.position.x, flipy(self.body.position.y)
-        pg.draw.circle(self.screen, pg.Color("black"), (x, y), self.radius, 0)
+        pg.draw.circle(self.screen, pg.Color("red"), (x, y), self.radius, 0)
 
     def in_box(self, box, balls_list, ball_ref):
         if self.is_in_box:
