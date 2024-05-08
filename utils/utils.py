@@ -70,33 +70,5 @@ def textToLines(text, font, maxWidth):
     return lines
 
 
-def configRead(func):
-    def wrapper():
-        config = None
-        with open("config.json", "r") as file:
-            config = json.load(file)
-        return func(config)
-    return wrapper
-
-
-@configRead
-def getScreenParams(config):
-    screenWidth = config['General']['screenWidth']
-    screenHeight = config['General']['screenHeight']
-    fps = config['General']['fps']
-    return screenWidth, screenHeight, fps
-
-
-@configRead
-def getWarpMatrix(config):
-    warpMatrix = np.array(config['Surface'])
-    return warpMatrix
-
-
-@configRead
-def getCameraDistortions(config):
-    mtx = np.array(config['Camera']['mtx'])
-    dist = np.array(config['Camera']['dist'])
-    rvecs = np.array(config['Camera']['mtx'])
-    tvecs = np.array(config['Camera']['mtx'])
-    return mtx, dist, rvecs, tvecs
+def returnValue(value):
+    return value

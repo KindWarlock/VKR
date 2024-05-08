@@ -31,7 +31,7 @@ class Ball:
         x, y = self.body.position.x, flipy(self.body.position.y)
         pg.draw.circle(self.screen, pg.Color("red"), (x, y), self.radius, 0)
 
-    def in_box(self, box, balls_list, ball_ref):
+    def inBox(self, box, balls_list, ball_ref):
         if self.is_in_box:
             return False
 
@@ -63,39 +63,3 @@ class Ball:
                            config.SCREEN_WIDTH - config.BALL_RADIUS - 10)
 
         return Ball(x, flipy(y), space, screen)
-
-
-class BallPh:
-    def __init__(self, x, y, radius=10):
-        # self.velocity = np.array([0, 0], dtype=float)
-        self.acceleration = np.array([0, 0], dtype=float)
-        self.velocity = np.array([0, 0], dtype=float)
-
-        self.position = np.array([x, y], dtype=float)
-        self.position_old = np.array([x, y], dtype=float)
-        self.position_temp = np.array([x, y], dtype=float)
-
-        self.bounce = 0.9
-        self.radius = radius
-
-    def draw(self, screen):
-        pg.draw.circle(screen, pg.Color("blue"), self.position, self.radius, 1)
-
-    def apply_force(self, force):
-        self.acceleration += force
-
-    def update(self, dt):
-        self.velocity = self.position - self.position_old
-        # self.position_temp[0] = self.position[0]
-        # self.position_temp[1] = self.position[1]
-        self.position_old[0] = self.position[0]
-        self.position_old[1] = self.position[1]
-
-        self.position += self.velocity + self.acceleration * dt * dt
-        self.acceleration *= 0
-
-    def update_old_pos(self, old_pos):
-        # self.position_old[0] = self.position_temp[0]
-        # self.position_old[1] = self.position_temp[1]
-        self.position_old[0] = old_pos[0]
-        self.position_old[1] = old_pos[1]

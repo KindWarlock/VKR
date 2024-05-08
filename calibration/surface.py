@@ -9,8 +9,8 @@ import utils.utils as utils
 
 
 class SurfaceCalibration(CalibrationWindow):
-    def __init__(self, surface, backFunc):
-        super().__init__(surface, backFunc)
+    def __init__(self, surface):
+        super().__init__(surface)
 
         self.aruco = ArucoUtils(100)
         self.aruco.generateMarkers()
@@ -82,4 +82,3 @@ class SurfaceCalibration(CalibrationWindow):
             if isinstance(self.warpMatrix, np.ndarray):
                 self._calibToConfig()
                 cv2.destroyWindow('Markers')
-            self.back()

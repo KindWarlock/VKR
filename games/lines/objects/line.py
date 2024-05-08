@@ -43,15 +43,3 @@ class Line:
 
     def delete(self):
         self.space.remove(self.shape)
-
-
-class LinePh:
-    def __init__(self, pts):
-        self.pts = pts
-
-    def draw(self, screen):
-        pg.draw.lines(screen, (0, 0, 0), False, self.pts)
-
-    def to_lines(self):
-        res = np.array(list(zip(self.pts, self.pts[1:])))
-        return res

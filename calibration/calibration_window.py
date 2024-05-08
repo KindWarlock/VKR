@@ -27,10 +27,9 @@ class CalibrationWindow:
             value = self.value - 1
             return CalibrationWindow.State(value)
 
-    def __init__(self, surface, backFunc):
+    def __init__(self, surface):
         self.state = self.State.WAITING
         self.surf = surface
-        self.back = backFunc
 
         self.config = ConfigUtils()
         self.cap = None
@@ -84,7 +83,7 @@ class CalibrationWindow:
     def keypressed(self, key):
         if key == pygame.K_RETURN:
             if self.state == self.State.RUNNING:
-                return
+                return True
             self.state = self.state.next()
         elif key == pygame.K_r and self.state == self.State.END:
             self.state = self.state.prev()
@@ -97,6 +96,8 @@ class CalibrationWindow:
         elif self.state == self.State.RUNNING:
             self._displayRunning()
             self._displayRunningCv()
-        else:
+        elif self.state == self.State.END:
             self._displayEnd()
             self._displayEndCv()
+        else:
+            return True

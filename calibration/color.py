@@ -10,8 +10,8 @@ import utils.utils as utils
 
 
 class ColorCalibration(CalibrationWindow):
-    def __init__(self, surface, backFunc):
-        super().__init__(surface, backFunc)
+    def __init__(self, surface):
+        super().__init__(surface)
         self.calibParams = None
         self.ref = cv2.imread('./calibration/colors.png')
         self.cardSize = (4, 6)  # rows, cols
@@ -154,7 +154,6 @@ class ColorCalibration(CalibrationWindow):
                 cv2.destroyWindow('Color not corrected')
 
                 self._calibToConfig()
-            self.back()
 
     def run(self):
-        super().run()
+        return super().run()

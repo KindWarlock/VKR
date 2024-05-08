@@ -12,9 +12,6 @@ class Box:
 
         self.rect = (x, y, w, h)
         y_pm = flipy(y)
-        # seg1 = pymunk.Segment(self.body, (x, y_pm), (x, y_pm-h), 3)
-        # seg2 = pymunk.Segment(self.body, (x, y_pm-h), (x+w, y_pm-h), 3)
-        # seg3 = pymunk.Segment(self.body, (x+w, y_pm), (x+w, y_pm-h), 3)
         seg1 = pymunk.Segment(self.body, (0, 0), (0, -h), 3)
         seg2 = pymunk.Segment(self.body, (0, -h), (w, -h), 3)
         seg3 = pymunk.Segment(self.body, (w, 0), (w, -h), 3)

@@ -45,16 +45,21 @@ class ArucoUtils:
         detectorParams = cv2.aruco.DetectorParameters()
         markersDict = cv2.aruco.getPredefinedDictionary(self.availableMarkers)
         detector = cv2.aruco.ArucoDetector(markersDict, detectorParams)
-        rejectedImgPoints = np.array([])
-        self.detectedMarkers["Corners"], self.detectedMarkers["Ids"], rejectedImgPoints = detector.detectMarkers(
+
+        self.detectedMarkers["Corners"], self.detectedMarkers["Ids"], _ = detector.detectMarkers(
             greyImg)
-        self.detectedMarkers["Corners"] = np.array(
-            self.detectedMarkers["Corners"])
+
+        # Если маркеры были найдены
         if type(self.detectedMarkers["Ids"]) == np.ndarray:
+
+            # Преобразование в ndarray для более удобной работы
+            self.detectedMarkers["Corners"] = np.array(
+                self.detectedMarkers["Corners"])
+
+            # Сортировка обоих списков по возрастанию id; для соотнесения
             self._sortMarkers()
         else:
             self.detectedMarkers["Ids"] = np.array([])
-        return rejectedImgPoints
 
     def outlineMarkers(self, image, pg=False):
         if not pg:

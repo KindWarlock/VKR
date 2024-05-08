@@ -55,6 +55,12 @@ class ConfigUtils:
 
         return title, general
 
+    def getCameraUrl(self):
+        url = self.config['Camera']['url']
+        # if url.isdigit():
+        # url = int(url)
+        return url
+
     def configWrite(self):
         with open('config.json', 'w') as f:
             json.dump(self.config, f, indent=4)

@@ -4,6 +4,7 @@ import numpy as np
 import time
 
 import utils.utils as utils
+from utils.config_utils import ConfigUtils
 
 
 class TextAnimation:
@@ -35,7 +36,7 @@ class TextAnimation:
         self.pos = np.array(startPos)
 
         self.velocity = (self.endPos - self.startPos) / \
-            self.duration / utils.getScreenParams()[2]
+            self.duration / ConfigUtils().getScreenParams()[2]
         self.state = self.AnimationState.NONE
 
     def start(self):

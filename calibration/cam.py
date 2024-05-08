@@ -9,8 +9,8 @@ from calibration.calibration_window import CalibrationWindow
 
 
 class CameraCalibration(CalibrationWindow):
-    def __init__(self, surf, backFunc):
-        super().__init__(surf, backFunc)
+    def __init__(self, surf):
+        super().__init__(surf)
 
         self.calibParams = {'mtx': None, 'dist': None,
                             'rvecs': None, 'tvecs': None}
@@ -98,7 +98,7 @@ class CameraCalibration(CalibrationWindow):
                     all_charuco_corners.append(charuco_corners)
                     all_charuco_ids.append(charuco_ids)
 
-        retval, self.calibParams['mtx'], self.calibParams['dist'], self.calibParams['rvecs'], self.calibParams['tvecs'] = cv2.aruco.calibrateCameraCharuco(
+        self.calibParams['mtx'], self.calibParams['dist'], self.calibParams['rvecs'], self.calibParams['tvecs'] = cv2.aruco.calibrateCameraCharuco(
             all_charuco_corners, all_charuco_ids, self.board, image.shape[:2], None, None)
 
     def _calibToConfig(self):
@@ -121,12 +121,12 @@ class CameraCalibration(CalibrationWindow):
                 cv2.destroyWindow('Camera')
                 cv2.destroyWindow('Camera undistorted')
                 self._calibToConfig()
-            self.back()
         elif self.state == self.State.RUNNING or self.state == self.State.END and self.cap == None:
             # self.cap = cv2.VideoCapture('http://192.168.43.1:8080/video')
             self.cap = cv2.VideoCapture(1)
 
     def run(self):
-        super().run()
+        back = super().run()
         if self.state != self.State.RUNNING:
             self.count = self.PHOTOS_NUM
+        return back

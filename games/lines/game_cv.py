@@ -41,7 +41,7 @@ def get_calibration_aruco():
     return _arucoUtils, _image
 
 
-def filter_black(blur):
+def filterBlack(blur):
     hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
     # mask = cv2.inRange(hsv, (80, 30, 0), (100, 75, 235))
     mask = cv2.inRange(hsv, (80, 40, 0), (140, 255, 255))
@@ -50,7 +50,7 @@ def filter_black(blur):
     return mask
 
 
-def find_planets(blur):
+def findPlanets(blur):
     hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, (20, 40, 200), (40, 255, 255))
     circles = cv2.HoughCircles(
@@ -67,7 +67,32 @@ def find_planets(blur):
     # return planets
 
 
-def check_planets(frame, planets):
+def preprocess(frame):
+    blur = cv2.medianBlur(frame, 3)
+    return blur
+
+
+def findContours(frame):
+    th = cv2.morphologyEx(frame, cv2.MORPH_CLOSE,
+                          np.ones((5, 5), np.uint8))
+
+    contours, _ = cv2.findContours(
+        th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    for c in contours:
+        c = cv2.approxPolyDP(c, 1, True)
+
+    return contours
+
+
+def findObjects(frame):
+    blacks = filterBlack(frame)
+    contours = findContours(blacks)
+    planets = findPlanets(frame)
+    return contours, planets
+
+
+def checkPlanets(frame, planets):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, (20, 40, 200), (40, 255, 255))
 
