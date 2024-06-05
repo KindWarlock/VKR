@@ -1,21 +1,12 @@
 import numpy as np
 import pygame
-import json
+import os
 
 
 def flipy(y):
-    """Small hack to convert chipmunk physics to pg coordinates"""
     return -y + 600
 
-
-def resizeWindow(size):
-    with open('config.json', 'r+') as f:
-        data = json.load(f)
-        data['General']['screenWidth'] = size[0]
-        data['General']['screenHeight'] = size[1]
-        f.seek(0)        # <--- should reset file position to the beginning.
-        json.dump(data, f, indent=4)
-        f.truncate()
+# Pygame и OpenCV
 
 
 def surfToArray(surf):
@@ -25,6 +16,10 @@ def surfToArray(surf):
 def arrayToSurf(image):
     image_t = np.swapaxes(image, 0, 1)
     return pygame.surfarray.make_surface(image_t)
+
+
+def returnValue(value):
+    return value
 
 
 def getCenter(image, x=None, y=None):
@@ -41,34 +36,45 @@ def getCenter(image, x=None, y=None):
     return (x, y)
 
 
-def renderMultiline(lines, font, color):
-    out = []
-    for line in lines:
-        out.append(font.render(line, True, color))
-    return out
+def darken(screen, alpha=60):
+    darken_surface = pygame.Surface(screen.get_size())
+    darken_surface.fill((0, 0, 0))
+
+    darken_surface.set_alpha(alpha)
+    screen.blit(darken_surface, (0, 0))
 
 
-def textToLines(text, font, maxWidth):
-    textRendered = font.render(text, True, (0, 0, 0))
-    width = textRendered.get_width()
-    linesNum = np.ceil(width / maxWidth).astype(np.uint8)
-    charsNum = np.ceil(len(text) / linesNum).astype(np.uint8)
-    lines = []
-    lastEnd = 0
-    while lastEnd < len(text):
-        start = lastEnd
-        end = lastEnd + charsNum
-        if end >= len(text):
-            end = len(text)
-        elif text[end] != ' ':
-            while text[end] != ' ':
-                end += 1
-                if end == len(text):
-                    break
-        lines.append(text[start:end].strip())
-        lastEnd = end
-    return lines
+def calculateLuminance(color):
+    r, g, b = color
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
-def returnValue(value):
-    return value
+# Получение файлов
+
+def getAssetsDir():
+    currentDir = os.path.dirname(__file__)
+    assetsDir = os.path.join(currentDir, '../assets/')
+    return assetsDir
+
+
+def getImgDir():
+    assets = getAssetsDir()
+    imgPath = os.path.join(assets, 'img/')
+    return imgPath
+
+
+def getImg(path, name):
+    fullPath = os.path.join(path, name)
+    return pygame.image.load(fullPath)
+
+
+def getFontsDir():
+    assets = getAssetsDir()
+    fontPath = os.path.join(assets, 'fonts/')
+    return fontPath
+
+
+def getSound(name):
+    assets = getAssetsDir()
+    soundDir = os.path.join(assets, f'sounds/{name}')
+    return soundDir

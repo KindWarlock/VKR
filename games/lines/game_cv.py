@@ -1,58 +1,57 @@
 import cv2
 import numpy as np
-import calibration.aruco_utils as aruco_utils
-from math import sqrt
-from enum import Enum
-import pygame as pg
-from utils.utils import flipy
 
-from skimage.exposure import match_histograms
+import utils.utils as utils
 
 
-def open_cam(url=1):
-    # url = "http://192.168.43.1:8080/video"
-    _cap = cv2.VideoCapture(url, cv2.CAP_DSHOW)
-    if (_cap.isOpened() == False):
-        print("Error opening video stream or file")
-    _cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)  # auto mode
-    _cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)  # manual mode
-
-    return _cap
-
-
-def colorCorrection(frame):
-    ref = cv2.imread('./calibration/colors.png')
-
-    return match_histograms(frame, ref, channel_axis=-1)
-
-
-def get_calibration_aruco():
-    _arucoUtils = aruco_utils.ArucoUtils(100)
-    _arucoUtils.generate_markers()
-    _image = np.empty(
-        (config.SCREEN_HEIGHT, config.SCREEN_WIDTH, 3), dtype='uint8')
-    _image.fill(255)
-    _arucoUtils.place_markers(_image)
-    cv2.imshow('Display', _image)
-    cv2.imshow('Warped', _image)
-
-    # Надо сдвигать за границы экрана, но на винде это глючит
-    cv2.moveWindow('Display', 3000, 150)
-    return _arucoUtils, _image
+def createTrackbar():
+    cv2.namedWindow('Manual Calibration',  cv2.WINDOW_AUTOSIZE)
+    # Create trackbars for L, A, and B adjustments
+    # cv2.createTrackbar('H', 'Manual Calibration', 180, 180, lambda x: None)
+    # cv2.createTrackbar('S', 'Manual Calibration', 208, 255, lambda x: None)
+    # cv2.createTrackbar('V', 'Manual Calibration', 182, 255, lambda x: None)
+    cv2.createTrackbar('H_low', 'Manual Calibration', 20, 180, lambda x: None)
+    cv2.createTrackbar('S_low', 'Manual Calibration', 165, 255, lambda x: None)
+    cv2.createTrackbar('V_low', 'Manual Calibration', 194, 255, lambda x: None)
+    cv2.createTrackbar('H_high', 'Manual Calibration',
+                       40, 180, lambda x: None)
+    cv2.createTrackbar('S_high', 'Manual Calibration',
+                       255, 255, lambda x: None)
+    cv2.createTrackbar('V_high', 'Manual Calibration',
+                       255, 255, lambda x: None)
 
 
 def filterBlack(blur):
     hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
-    # mask = cv2.inRange(hsv, (80, 30, 0), (100, 75, 235))
-    mask = cv2.inRange(hsv, (80, 40, 0), (140, 255, 255))
-
-    cv2.imshow('Blacks', mask)
+    # h_adjust = cv2.getTrackbarPos('H', 'Manual Calibration')
+    # s_adjust = cv2.getTrackbarPos('S', 'Manual Calibration')
+    # v_adjust = cv2.getTrackbarPos('V', 'Manual Calibration')
+    h_adjust = 180
+    s_adjust = 255
+    v_adjust = 205
+    mask = cv2.inRange(hsv, (30, 0, 0), (h_adjust, s_adjust, v_adjust))
     return mask
 
 
 def findPlanets(blur):
     hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, (20, 40, 200), (40, 255, 255))
+
+    # h_low = cv2.getTrackbarPos('H_low', 'Manual Calibration')
+    # s_low = cv2.getTrackbarPos('S_low', 'Manual Calibration')
+    # v_low = cv2.getTrackbarPos('V_low', 'Manual Calibration')
+
+    # h_high = cv2.getTrackbarPos('H_high', 'Manual Calibration')
+    # s_high = cv2.getTrackbarPos('S_high', 'Manual Calibration')
+    # v_high = cv2.getTrackbarPos('V_high', 'Manual Calibration')
+
+    h_low = 20
+    s_low = 165
+    v_low = 194
+    h_high = 40
+    s_high = 255
+    v_high = 255
+
+    mask = cv2.inRange(hsv, (h_low, s_low, v_low), (h_high, s_high, v_high))
     circles = cv2.HoughCircles(
         mask, cv2.HOUGH_GRADIENT, 1, 50, param1=10, param2=10, minRadius=10)
     cv2.imshow('Planets', mask)
@@ -76,11 +75,14 @@ def findContours(frame):
     th = cv2.morphologyEx(frame, cv2.MORPH_CLOSE,
                           np.ones((5, 5), np.uint8))
 
+    th = cv2.morphologyEx(th, cv2.MORPH_DILATE,
+                          np.ones((3, 3), np.uint8))
+
     contours, _ = cv2.findContours(
         th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    for c in contours:
-        c = cv2.approxPolyDP(c, 1, True)
+    # for c in contours:
+    # c = cv2.approxPolyDP(c, 1, True)
 
     return contours
 
@@ -98,26 +100,23 @@ def checkPlanets(frame, planets):
 
     remove_planets = []
     for p in planets:
-        if not mask[flipy(int(p.body.position.y) - 1), int(p.body.position.x - 1)]:
+        if not mask[utils.flipy(int(p.body.position.y)) - 1, int(p.body.position.x - 1)]:
             remove_planets.append(p)
 
     return remove_planets
 
 
-def process(frame, warp_matrix):
-    frame = cv2.warpPerspective(
-        frame, warp_matrix, (config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
-
+def process(frame):
     # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     blur = cv2.medianBlur(frame, 3)
     # smooth = cv2.GaussianBlur(frame, (25, 25), 0)
     norm = cv2.normalize(blur, None, 0, 100, cv2.NORM_MINMAX)
     # norm = cv2.divide(frame, 255 - smooth, scale=20)
-    cv2.imshow('Normalized', norm)
-    blacks = filter_black(norm)
+    # cv2.imshow('Normalized', norm)
+    blacks = filterBlack(norm)
 
-    th = cv2.morphologyEx(blacks, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+    th = cv2.morphologyEx(blacks, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
     # cv2.imshow('TH', th)
 
     contours, _ = cv2.findContours(
@@ -126,32 +125,57 @@ def process(frame, warp_matrix):
     for c in contours:
         c = cv2.approxPolyDP(c, 1, True)
         cv2.drawContours(frame, [c], -1, (0, 255, 0), 2)
-    cv2.imshow('Warped', frame)
+    # cv2.imshow('Warped', frame)
 
     planets = []
-    planets = find_planets(norm)
+    planets = findPlanets(norm)
     return frame, contours, planets
 
 
-def get_warp_matrix(aruco_utils, frame, markers_image):
-    corners = aruco_utils.detect_corners(frame)
-    aruco_utils.outline_markers(frame)
-    warpMatrix = None
+# def findNewLines(frame, subtractor):
+#     mask = subtractor.apply(frame)
+#     _, thresh = cv2.threshold(mask, 244, 255, cv2.THRESH_BINARY)
 
-    if type(corners) == np.ndarray:
-        # x, y format
-        out = np.float32([[0, 0],
-                          [0, markers_image.shape[0] - 1],
-                          [markers_image.shape[1] - 1,
-                           markers_image.shape[0] - 1],
-                          [markers_image.shape[1] - 1, 0]])
-        # print(corners, out)
-        warpMatrix = cv2.getPerspectiveTransform(corners, out)
-    return warpMatrix
+#     # Use morphological operations to remove noise and fill gaps
+#     kernel = np.ones((5, 5), np.uint8)
+#     dilated = cv2.dilate(thresh, kernel, iterations=2)
+#     eroded = cv2.erode(dilated, kernel, iterations=1)
+
+#     # Find contours in the processed mask
+#     contours, _ = cv2.findContours(
+#         eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+#     cv2.drawContours(frame, contours, -1, (255, 0, 0))
+#     # cv2.imshow('New objects')
 
 
-def pg_to_cv2(pg_screen):
-    result = pg.surfarray.array3d(
-        pg_screen).swapaxes(0, 1)
-    result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
-    return result
+def findNewLines(frame, allContours, oldContours):
+    if len(frame.shape) == 3 and frame.shape[2] == 3:
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    allContoursImg = np.zeros_like(frame)
+    cv2.drawContours(allContoursImg, allContours, -1, (255, 255, 255), -1)
+    # allContoursImg = cv2.morphologyEx(allContoursImg, cv2.MORPH_ERODE,
+    #   np.ones((7, 7), np.uint8))
+
+    oldContoursImg = np.zeros_like(frame)
+    cv2.drawContours(oldContoursImg, oldContours, -1, (255, 255, 255), -1)
+    oldContoursImg = cv2.morphologyEx(oldContoursImg, cv2.MORPH_DILATE,
+                                      np.ones((7, 7), np.uint8))
+
+    cv2.imshow('all contours', allContoursImg)
+    cv2.imshow('old contours', oldContoursImg)
+
+    newContoursImg = allContoursImg.copy()
+
+    temp = cv2.bitwise_and(allContoursImg, oldContoursImg)
+    newContoursImg = cv2.bitwise_xor(allContoursImg, temp)
+
+    newContoursImg = cv2.morphologyEx(newContoursImg, cv2.MORPH_DILATE,
+                                      np.ones((3, 3), np.uint8))
+
+    _, th = cv2.threshold(newContoursImg, 128, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(
+        th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    cv2.imshow('new contours', newContoursImg)
+    return contours

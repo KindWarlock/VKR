@@ -1,152 +1,50 @@
 import pygame
-import pymunk
-from pymunk import Vec2d
-import numpy as np
-
-from utils.utils import flipy
-from games.lines.objects.ball import Ball
-from games.lines.objects.box import Box
-from games.lines.objects.line import Line
-from games.lines.objects.attractor import Attractor
-
 
 from utils.config_utils import ConfigUtils
-
-from enum import Enum
-
-X, Y = 0, 1
-
-
-class GameState(Enum):
-    GAME = 0
-    PAUSE = 1
+from games.lines.states.menu_state import MenuState
+from games.lines.states.game_state import GameState
+from games.lines.states.gameover_state import GameoverState
+from games.lines.states.pause_state import PauseState
 
 
 class LinesGame:
-    TIMER_EVENT = pygame.USEREVENT + 0
-    BALL_SPAWN_EVENT = pygame.USEREVENT + 1
+    FPS = ConfigUtils().getScreenParams()[2]
 
     def __init__(self, screen):
         self.screen = screen
         self.clock = pygame.time.Clock()
-        self.state = GameState.GAME
 
-        self.space = pymunk.Space()
-        self.space.gravity = 0.0, -10
+        self.state = MenuState(self.screen)
 
-        # Objects
-        self.balls = []
+    @property
+    def isRunning(self):
+        return isinstance(self.state, GameState)
 
-        self.planets = []
-
-        self.box = Box(self.space, self.screen, 50, ConfigUtils().getScreenParams()[0] - 100,
-                       50, 100)
-
-        self.fps = ConfigUtils.getScreenParams()[2]
-        self.score = 0
-
-        pygame.time.set_timer(self.BALL_SPAWN_EVENT, 5000)
-        pygame.time.set_timer(self.TIMER_EVENT, 1000)
-
-        self.background = pygame.image.load('bg1.jpg')
-
-    def displayScore(self):
-        font = pygame.font.Font(None, 16)
-        text = f"""SCORE: {self.score}"""
-
-        y = 5
-        for line in text.splitlines():
-            text = font.render(line, True, (128, 128, 128))
-            self.screen.blit(text, (5, y))
-            y += 10
+    @property
+    def isMenu(self):
+        return isinstance(self.state, MenuState) or isinstance(self.state, GameoverState) or isinstance(self.state, PauseState)
 
     def run(self):
-        p = pygame.mouse.get_pos()
+        if self.state == None:
+            pygame.time.set_timer(GameState.timerEvent, 0)
+            pygame.time.set_timer(GameState.generationEvent, 0)
+            return True
+        self.screen.fill((255, 255, 255))
+        self.state.run()
 
-        for ball in self.balls:
-            for p in self.planets:
-                v = p.position - ball.body.position
-                v_norm = v.normalized()
-                dt = 1.0 / 60.0
-
-                pymunk.Body.update_velocity(
-                    ball.body, p.get_force(ball) * v_norm + self.space.gravity, 0.99, dt)
-
-        dt = 1.0 / 60.0
-        self.space.step(dt)
-
-        # DRAWING
-        self.screen.fill(pygame.Color("white"))
-
-        self.screen.blit(self.background, (0, 0))
-        # for p in self.planets:
-        # p.draw_shape(self.screen)
-
-        for ball in self.balls:
-            if ball.inBox(self.box, self.balls, ball):
-                self.score += 1
-            ball.draw()
-
-        # for line in self.lines:
-        #     line.draw()
-
-        self.box.draw()
-
-        self.displayScore()
-
-        # Flip screen
-        # pygame.display.flip()
-        self.clock.tick(self.fps)
-        # pygame.display.set_caption("fps: " + str(self.clock.get_fps()))
-        for line in self.lines:
-            line.delete()
-        self.lines = []
-        # for p in self.planets:
-        # p.delete()
-        # self.planets = []
-        # for p in self.planets:
-        # print(p.body.position, p.radius)
-
-    def pairwise(iterable):
-        a = iter(iterable)
-        return zip(a, a)
-
-    def addContour(self, contour):
-        # new_line = Line.line_from_contour(contour, self.screen, self.space)
-        # self.lines.append(new_line)
-        contour = np.squeeze(contour, axis=1)
-        for p1, p2 in self.pairwise(contour):
-            # For text
-            if p1[1] < 30 or p2[1] < 30:
-                continue
-            # for b in self.balls:
-                # f_p1 = Vec2d(p1[0], p1[1])
-                # f_p2 = Vec2d(p2[0], p2[1])
-                # print((b.body.position - f_p1).length)
-                # if (b.body.position - f_p1).length + 2 <= b.radius or (b.body.position - f_p2).length + 2 <= b.radius:
-                # print('!')
-                # return
-            points = np.array([p1, p2])
-            # print(np.linalg.norm(points[0] - [points[1]]))
-            # if np.linalg.norm(points[0] - [points[1]]) < 2:
-            # continue
-            new_line = Line(points, self.screen, self.space)
-            self.lines.append(new_line)
-
-    def addAttractor(self, p, r):
-        p[1] = flipy(p[1])
-
-        for planet in self.planets:
-            if (planet.body.position - p).length < planet.radius:
-                return
-        # print(p, r)
-        self.planets.append(Attractor(self.space, p, r + 5))
-
-    def removePlanets(self, planets):
-        for p in planets:
-            p.delete()
-            self.planets.remove(p)
+        self.clock.tick(self.FPS)
 
     def handleEvent(self, event):
-        if event.type == self.BALL_SPAWN_EVENT:
-            self.balls.append(Ball.spawn(self.space, self.screen))
+        result = self.state.handleEvent(event)
+
+        # Вышло время
+        if self.isRunning and result != None:
+            self.state = GameoverState(self.screen, result)
+
+    def keypressed(self, key, unicode):
+        result = self.state.keypressed(key, unicode)
+        self.state = result
+
+    def delegateToState(self, func, *args):
+        method = getattr(self.state, func)
+        return method(*args)

@@ -14,16 +14,6 @@ def openCam():
     return _cap
 
 
-def fixCamera(frame):
-    mtx, dist, rvecs, tvecs = ConfigUtils().getCameraDistortions()
-    undistorted = cv2.undistort(frame, mtx, dist)
-    return undistorted
-
-
-def fixSurface():
-    ...
-
-
 def fixColor(frame):
     diff = ConfigUtils().getColors()
 
@@ -47,20 +37,32 @@ def fixFrame(frame):
 
 
 def normalize(frame):
-    rgb_planes = cv2.split(frame)
+    # rgb_planes = cv2.split(frame)
 
-    result_planes = []
-    result_norm_planes = []
+    # result_planes = []
+    # result_norm_planes = []
 
-    #  Нормализуем по каждому из каналов
-    for plane in rgb_planes:
-        dilated_img = cv2.dilate(plane, np.ones((7, 7), np.uint8))
-        bg_img = cv2.medianBlur(dilated_img, 21)
-        diff_img = 255 - cv2.absdiff(plane, bg_img)
-        norm_img = cv2.normalize(
-            diff_img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
-        result_planes.append(diff_img)
-        result_norm_planes.append(norm_img)
+    # #  Нормализуем по каждому из каналов
+    # for plane in rgb_planes:
+    #     dilated_img = cv2.dilate(plane, np.ones((7, 7), np.uint8))
+    #     bg_img = cv2.medianBlur(dilated_img, 21)
+    #     diff_img = 255 - cv2.absdiff(plane, bg_img)
+    #     norm_img = cv2.normalize(
+    #         diff_img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+    #     result_planes.append(diff_img)
+    #     result_norm_planes.append(norm_img)
 
-    result_norm = cv2.merge(result_norm_planes)
-    return result_norm
+    # result_norm = cv2.merge(result_norm_planes)
+
+    # Split the image into R, G, B channels
+    b, g, r = cv2.split(frame)
+
+    # Apply histogram equalization to each channel
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(16, 16))
+    b = clahe.apply(b)
+    g = clahe.apply(g)
+    r = clahe.apply(r)
+
+    normalized_frame = cv2.merge((b, g, r))
+
+    return normalized_frame

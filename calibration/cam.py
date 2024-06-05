@@ -104,8 +104,8 @@ class CameraCalibration(CalibrationWindow):
     def _calibToConfig(self):
         self.config.setCameraDistortions(self.calibParams)
 
-    def keypressed(self, key):
-        super().keypressed(key)
+    def keypressed(self, key, unicode):
+        super().keypressed(key, unicode)
         if self.state == self.State.WAITING and key == pygame.K_p:
             self._printBoard()
         if self.state == self.State.RUNNING and key == pygame.K_SPACE:

@@ -35,8 +35,8 @@ class CalibrationWindow:
         self.cap = None
 
     def _renderTitle(self, text):
-        fontFamily = self.config.getFonts()[0]
-        font = pygame.font.Font(fontFamily, 32)
+        fontFamily, fontSize = self.config.getFont(type='title')
+        font = pygame.font.Font(fontFamily, fontSize)
         title = font.render(text, True, (57, 41, 92))
         y = self.surf.get_size()[1] // 2 - 60
         line_rect = title.get_rect(
@@ -44,8 +44,8 @@ class CalibrationWindow:
         self.surf.blit(title, line_rect)
 
     def _displayText(self, text):
-        fontFamily = self.config.getFonts()[1]
-        font = pygame.font.Font(fontFamily, 24)
+        fontFamily, fontSize = self.config.getFont()
+        font = pygame.font.Font(fontFamily, fontSize)
 
         textLines = utils.textToLines(text, font, 400)
         lines = utils.renderMultiline(textLines, font, (57, 41, 92))
@@ -80,7 +80,7 @@ class CalibrationWindow:
     def _calibToConfig(self):
         ...
 
-    def keypressed(self, key):
+    def keypressed(self, key, unicode):
         if key == pygame.K_RETURN:
             if self.state == self.State.RUNNING:
                 return True

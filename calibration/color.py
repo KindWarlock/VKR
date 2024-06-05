@@ -1,10 +1,7 @@
-from enum import Enum
 import numpy as np
 import cv2
-import json
 import pygame
-# from config import SCREEN_HEIGHT, SCREEN_WIDTH
-from calibration.aruco_utils import ArucoUtils
+
 from calibration.calibration_window import CalibrationWindow
 import utils.utils as utils
 
@@ -60,6 +57,7 @@ class ColorCalibration(CalibrationWindow):
         ...
 
     def _displayEndCv(self):
+        self.getAdjustments()
         ret, frame = self.cap.read()
         if ret:
             frame = self._preprocess(frame)
@@ -97,7 +95,6 @@ class ColorCalibration(CalibrationWindow):
             coord = (coord[0], coord[1])
             color = lab[coord]
             patchColors.append(color)
-
         patchColors = np.array(patchColors)
 
         return patchColors
@@ -139,21 +136,43 @@ class ColorCalibration(CalibrationWindow):
     def _calibToConfig(self):
         self.config.setColors(self.calibParams)
 
-    def keypressed(self, key):
-        super().keypressed(key)
+    def keypressed(self, key, unicode):
+        super().keypressed(key, unicode)
         if self.state == self.State.RUNNING:
             self._displayColors()
             pygame.display.update()
             self.cap = cv2.VideoCapture(1)
             self._calibrate()
             self.state = self.state.next()
+            self.createTrackbar()
 
         elif self.state == None:
             if key == pygame.K_RETURN:
                 cv2.destroyWindow('Color corrected')
                 cv2.destroyWindow('Color not corrected')
-
+                cv2.destroyWindow('Manual Calibration')
                 self._calibToConfig()
 
     def run(self):
         return super().run()
+
+    def createTrackbar(self):
+        # Create a window
+        cv2.namedWindow('Manual Calibration',  cv2.WINDOW_AUTOSIZE)
+        # Create trackbars for L, A, and B adjustments
+        cv2.createTrackbar('L', 'Manual Calibration', int(
+            self.calibParams[0]), 512, lambda x: None)
+        cv2.createTrackbar('A', 'Manual Calibration', int(
+            self.calibParams[1]), 512, lambda x: None)
+        cv2.createTrackbar('B', 'Manual Calibration', int(
+            self.calibParams[2]), 512, lambda x: None)
+
+        cv2.setTrackbarMin('L', 'Manual Calibration', -255)
+        cv2.setTrackbarMin('A', 'Manual Calibration', -255)
+        cv2.setTrackbarMin('B', 'Manual Calibration', -255)
+
+    def getAdjustments(self):
+        l_adjust = cv2.getTrackbarPos('L', 'Manual Calibration') + 30
+        a_adjust = cv2.getTrackbarPos('A', 'Manual Calibration') - 15
+        b_adjust = cv2.getTrackbarPos('B', 'Manual Calibration') - 10
+        self.calibParams = np.array([l_adjust, a_adjust, b_adjust])

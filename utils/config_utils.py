@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import os
+import utils.utils as utils
 
 
 class ConfigUtils:
@@ -14,11 +15,7 @@ class ConfigUtils:
 
     def __init__(self) -> None:
         self.configRead()
-        self._getFontsDir()
-
-    def _getFontsDir(self):
-        currentDir = os.path.dirname(__file__)
-        self.fontPath = os.path.join(currentDir, '../assets/fonts/')
+        self.fontPath = utils.getFontsDir()
 
     def configRead(self):
         with open("config.json", "r") as file:
@@ -46,20 +43,35 @@ class ConfigUtils:
         colors = np.array(self.config['Colors'])
         return colors
 
-    def getFonts(self):
-        titleName = self.config['General']['fonts']['title']
-        generalName = self.config['General']['fonts']['general']
+    def getFont(self, type='general', size='m'):
+        if type == 'general':
+            font = self.config['General']['fonts']['general']
+        else:
+            font = self.config['General']['fonts']['title']
+        fontLink = os.path.join(self.fontPath, font['family'])
 
-        title = os.path.join(self.fontPath, titleName)
-        general = os.path.join(self.fontPath, generalName)
-
-        return title, general
+        fontSize = font['size'][size]
+        return fontLink, fontSize
 
     def getCameraUrl(self):
         url = self.config['Camera']['url']
         # if url.isdigit():
         # url = int(url)
         return url
+
+    def getPlayer(self, game=0):
+        if game == 0:
+            player = self.config['Shooter']['Player']
+        else:
+            player = self.config['Lines']['Player']
+        return player
+
+    def setPlayer(self, player, game=0):
+        if game == 0:
+            self.config['Shooter']['Player'] = player
+        else:
+            self.config['Lines']['Player'] = player
+        self.configWrite()
 
     def configWrite(self):
         with open('config.json', 'w') as f:
@@ -87,3 +99,6 @@ class ConfigUtils:
     def setColors(self, value):
         self.config['Colors'] = value.tolist()
         self.configWrite()
+
+    def getColorScheme(self, game):
+        return self.config[game]['Colors']

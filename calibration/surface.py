@@ -1,7 +1,5 @@
-from enum import Enum
 import numpy as np
 import cv2
-import json
 
 from calibration.aruco_utils import ArucoUtils
 from calibration.calibration_window import CalibrationWindow
@@ -11,7 +9,6 @@ import utils.utils as utils
 class SurfaceCalibration(CalibrationWindow):
     def __init__(self, surface):
         super().__init__(surface)
-
         self.aruco = ArucoUtils(100)
         self.aruco.generateMarkers()
         self.warpMatrix = None
@@ -72,8 +69,8 @@ class SurfaceCalibration(CalibrationWindow):
     def _calibToConfig(self):
         self.config.setWarpMatrix(self.warpMatrix)
 
-    def keypressed(self, key):
-        super().keypressed(key)
+    def keypressed(self, key, unicode):
+        super().keypressed(key, unicode)
         if self.state == self.State.RUNNING:
             # self.cap = cv2.VideoCapture('http://192.168.43.1:8080/video')
             self.cap = cv2.VideoCapture(1)

@@ -2,7 +2,6 @@ import pygame as pg
 import pymunk
 import numpy as np
 
-import config
 from utils.utils import flipy
 
 
@@ -24,13 +23,8 @@ class Line:
         # self.bbox = bbox
         # self.buffer = np.empty((config.SCREEN_HEIGHT, config.SCREEN_WIDTH))
 
-    def is_same(self, frame):
-        pass
-
-    def is_line(frame, bbox):
-        pass
-
     def draw(self):
+        print('draw?')
         body = self.shape.body
         pv1 = body.position + self.shape.a.rotated(body.angle)
         pv2 = body.position + self.shape.b.rotated(body.angle)
@@ -43,3 +37,6 @@ class Line:
 
     def delete(self):
         self.space.remove(self.shape)
+
+    def len(self):
+        return np.linalg.norm(self.pts[1] - self.pts[0])
