@@ -13,7 +13,7 @@ class Game:
         # self.prevContours = []
         # self.subtractor = cv2.createBackgroundSubtractorMOG2(
         # history=1000, varThreshold=50, detectShadows=False)
-        game_cv.createTrackbar()
+        # game_cv.createTrackbar()
 
     def process(self, frame):
         blurred = game_cv.preprocess(frame)
@@ -53,7 +53,7 @@ class Game:
             frame = cv_utils.fixFrame(frame)
             frame = cv_utils.normalize(frame)
             self.process(frame)
-            cv2.imshow('Frame', frame)
+            # cv2.imshow('Frame', frame)
 
         return back
 

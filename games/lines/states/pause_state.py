@@ -4,7 +4,6 @@ import utils.utils as utils
 
 from games.shooter.states.base_state import BaseState
 from games.lines.lines_menu import Menu, MenuItem
-# from games.shooter.states.game_state import GameState
 
 
 class PauseState(BaseState):
@@ -30,8 +29,10 @@ class PauseState(BaseState):
         return newState
 
     def _createMenu(self):
+        from games.lines.states.menu_state import MenuState
+
         self.menu = Menu('Пауза')
         self.menu.addItems([MenuItem('Заново', self.game.start),
                             MenuItem('Продолжить', utils.returnValue,
                                      self.game),
-                            MenuItem('Выход', utils.returnValue, self)])
+                            MenuItem('Выход', MenuState, self.screen)])

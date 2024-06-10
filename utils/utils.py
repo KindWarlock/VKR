@@ -1,6 +1,7 @@
 import numpy as np
 import pygame
 import os
+import cv2
 
 
 def flipy(y):
@@ -10,7 +11,9 @@ def flipy(y):
 
 
 def surfToArray(surf):
-    return pygame.surfarray.array3d(surf).swapaxes(0, 1)
+    array = pygame.surfarray.array3d(surf).swapaxes(0, 1)
+    array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
+    return array
 
 
 def arrayToSurf(image):

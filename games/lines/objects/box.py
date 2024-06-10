@@ -23,9 +23,14 @@ class Box:
 
         space.add(self.body, *self.segments)
 
+        for s in self.segments:
+            s.collision_type = 3
+            s.friction = 0.4
+            s.elasticity = 0.1
+
         self.color = (170, 92, 196)
         # self.balls = []
-        self.body.velocity = pymunk.Vec2d(1, 0)
+        self.body.velocity = pymunk.Vec2d(2, 0)
         self.body.position = pymunk.Vec2d(x, y_pm)
         self.body.position_func = Box.move
 

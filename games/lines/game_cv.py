@@ -7,18 +7,18 @@ import utils.utils as utils
 def createTrackbar():
     cv2.namedWindow('Manual Calibration',  cv2.WINDOW_AUTOSIZE)
     # Create trackbars for L, A, and B adjustments
-    # cv2.createTrackbar('H', 'Manual Calibration', 180, 180, lambda x: None)
-    # cv2.createTrackbar('S', 'Manual Calibration', 208, 255, lambda x: None)
-    # cv2.createTrackbar('V', 'Manual Calibration', 182, 255, lambda x: None)
-    cv2.createTrackbar('H_low', 'Manual Calibration', 20, 180, lambda x: None)
-    cv2.createTrackbar('S_low', 'Manual Calibration', 165, 255, lambda x: None)
-    cv2.createTrackbar('V_low', 'Manual Calibration', 194, 255, lambda x: None)
-    cv2.createTrackbar('H_high', 'Manual Calibration',
-                       40, 180, lambda x: None)
-    cv2.createTrackbar('S_high', 'Manual Calibration',
-                       255, 255, lambda x: None)
-    cv2.createTrackbar('V_high', 'Manual Calibration',
-                       255, 255, lambda x: None)
+    cv2.createTrackbar('H', 'Manual Calibration', 180, 180, lambda x: None)
+    cv2.createTrackbar('S', 'Manual Calibration', 255, 255, lambda x: None)
+    cv2.createTrackbar('V', 'Manual Calibration', 205, 255, lambda x: None)
+    # cv2.createTrackbar('H_low', 'Manual Calibration', 20, 180, lambda x: None)
+    # cv2.createTrackbar('S_low', 'Manual Calibration', 165, 255, lambda x: None)
+    # cv2.createTrackbar('V_low', 'Manual Calibration', 194, 255, lambda x: None)
+    # cv2.createTrackbar('H_high', 'Manual Calibration',
+    #                    40, 180, lambda x: None)
+    # cv2.createTrackbar('S_high', 'Manual Calibration',
+    #                    255, 255, lambda x: None)
+    # cv2.createTrackbar('V_high', 'Manual Calibration',
+    #                    255, 255, lambda x: None)
 
 
 def filterBlack(blur):
@@ -30,6 +30,7 @@ def filterBlack(blur):
     s_adjust = 255
     v_adjust = 205
     mask = cv2.inRange(hsv, (30, 0, 0), (h_adjust, s_adjust, v_adjust))
+    # cv2.imshow('blacks', mask)
     return mask
 
 
@@ -54,7 +55,7 @@ def findPlanets(blur):
     mask = cv2.inRange(hsv, (h_low, s_low, v_low), (h_high, s_high, v_high))
     circles = cv2.HoughCircles(
         mask, cv2.HOUGH_GRADIENT, 1, 50, param1=10, param2=10, minRadius=10)
-    cv2.imshow('Planets', mask)
+    # cv2.imshow('Planets', mask)
 
     if circles is not None:
         # circles = np.uint16(np.around(circles))[0]

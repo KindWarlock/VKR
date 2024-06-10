@@ -4,6 +4,7 @@ import pygame
 
 from calibration.calibration_window import CalibrationWindow
 import utils.utils as utils
+import utils.cv_utils as cv_utils
 
 
 class ColorCalibration(CalibrationWindow):
@@ -13,6 +14,7 @@ class ColorCalibration(CalibrationWindow):
         self.ref = cv2.imread('./calibration/colors.png')
         self.cardSize = (4, 6)  # rows, cols
         self._cropCard()
+        self.manualCalib = False
 
     def _cropCard(self):
         # Изначальное изображение слишком большое
@@ -50,18 +52,23 @@ class ColorCalibration(CalibrationWindow):
         self._displayColors()
 
     def _displayEnd(self):
-        super()._displayTemplate('Калибровка завершена',
-                                 'Если результат вас не устраивает, повторите калибровку, нажав R. Учтите, что изображение может иметь красный оттенок. Для выхода нажмите Enter')
+        if not self.manualCalib:
+            super()._displayTemplate('Калибровка завершена',
+                                     'Если результат вас не устраивает, повторите калибровку, нажав R. Для ручной калибровки нажмите M (после калибровки - Enter). Для выхода нажмите Enter')
+            return
+        self._displayColors()
 
     def _displayRunningCv(self):
         ...
 
     def _displayEndCv(self):
-        self.getAdjustments()
+        if self.manualCalib:
+            self.getAdjustments()
         ret, frame = self.cap.read()
         if ret:
             frame = self._preprocess(frame)
-            cv2.imshow('Color not corrected', frame)
+            # cv2.imshow('Source image', frame)
+            cv2.imshow('Source image', utils.surfToArray(self.surf))
             corrected = self._colorCorrection(frame)
             cv2.imshow('Color corrected', corrected)
 
@@ -121,7 +128,9 @@ class ColorCalibration(CalibrationWindow):
 
             meanValues = np.mean(difference, axis=0)
             # stdValues = np.std(difference, axis=0)
-
+            meanValues[0] += 30
+            meanValues[1] -= 15
+            meanValues[2] -= 10
             self.calibParams = meanValues
             # for i in range(3):  # Iterate over the L, a, and b channels
             #     frameLab[:, :, i] = ((frameLab[:, :, i] - np.mean(frameLab[:, :, i])) * (
@@ -141,15 +150,17 @@ class ColorCalibration(CalibrationWindow):
         if self.state == self.State.RUNNING:
             self._displayColors()
             pygame.display.update()
-            self.cap = cv2.VideoCapture(1)
+            self.cap = cv_utils.openCam()
             self._calibrate()
             self.state = self.state.next()
-            self.createTrackbar()
-
+        elif self.state == self.State.END:
+            if key == pygame.K_m:
+                self.createTrackbar()
+                self.manualCalib = True
         elif self.state == None:
             if key == pygame.K_RETURN:
                 cv2.destroyWindow('Color corrected')
-                cv2.destroyWindow('Color not corrected')
+                cv2.destroyWindow('Source image')
                 cv2.destroyWindow('Manual Calibration')
                 self._calibToConfig()
 
@@ -172,7 +183,7 @@ class ColorCalibration(CalibrationWindow):
         cv2.setTrackbarMin('B', 'Manual Calibration', -255)
 
     def getAdjustments(self):
-        l_adjust = cv2.getTrackbarPos('L', 'Manual Calibration') + 30
-        a_adjust = cv2.getTrackbarPos('A', 'Manual Calibration') - 15
-        b_adjust = cv2.getTrackbarPos('B', 'Manual Calibration') - 10
+        l_adjust = cv2.getTrackbarPos('L', 'Manual Calibration')
+        a_adjust = cv2.getTrackbarPos('A', 'Manual Calibration')
+        b_adjust = cv2.getTrackbarPos('B', 'Manual Calibration')
         self.calibParams = np.array([l_adjust, a_adjust, b_adjust])

@@ -1,11 +1,9 @@
 import pygame
 from enum import Enum
-import numpy as np
-import cv2
-import json
 
 import utils.utils as utils
 from utils.config_utils import ConfigUtils
+from utils.mutliline_text import MultilineText
 
 
 class CalibrationWindow:
@@ -46,16 +44,18 @@ class CalibrationWindow:
     def _displayText(self, text):
         fontFamily, fontSize = self.config.getFont()
         font = pygame.font.Font(fontFamily, fontSize)
-
-        textLines = utils.textToLines(text, font, 400)
-        lines = utils.renderMultiline(textLines, font, (57, 41, 92))
+        text = MultilineText(text, font, (57, 41, 92), 400)
+        # textLines = utils.textToLines(text, font, 400)
+        # lines = utils.renderMultiline(textLines, font, (57, 41, 92))
 
         y = self.surf.get_size()[1] // 2
-        for line in lines:
-            line_rect = line.get_rect(
-                center=utils.getCenter(self.surf, y=y))
-            y += line_rect.height
-            self.surf.blit(line, line_rect)
+        text.draw(self.surf, None, y, alignCenter=True)
+
+        # for line in lines:
+        #     line_rect = line.get_rect(
+        #         center=utils.getCenter(self.surf, y=y))
+        #     y += line_rect.height
+        #     self.surf.blit(line, line_rect)
 
     def _displayTemplate(self, title, text):
         self.surf.fill((255, 255, 255))
@@ -97,7 +97,7 @@ class CalibrationWindow:
             self._displayRunning()
             self._displayRunningCv()
         elif self.state == self.State.END:
-            self._displayEnd()
             self._displayEndCv()
+            self._displayEnd()
         else:
             return True

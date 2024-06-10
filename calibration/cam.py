@@ -122,7 +122,6 @@ class CameraCalibration(CalibrationWindow):
                 cv2.destroyWindow('Camera undistorted')
                 self._calibToConfig()
         elif self.state == self.State.RUNNING or self.state == self.State.END and self.cap == None:
-            # self.cap = cv2.VideoCapture('http://192.168.43.1:8080/video')
             self.cap = cv2.VideoCapture(1)
 
     def run(self):

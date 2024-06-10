@@ -19,7 +19,7 @@ class GameState(BaseState):
     generationEvent = pygame.USEREVENT + 1
 
     STAMINA = 60
-    TIME = 10
+    TIME = 30
 
     def __init__(self, screen):
         self.screen = screen
@@ -27,7 +27,7 @@ class GameState(BaseState):
         self.space = pymunk.Space()
         self.space.gravity = 0.0, -100
 
-        pygame.time.set_timer(GameState.generationEvent, 1000)
+        pygame.time.set_timer(GameState.generationEvent, 2000)
         pygame.time.set_timer(GameState.timerEvent, 1000)
 
         imgDir = utils.getImgDir()
@@ -42,6 +42,15 @@ class GameState(BaseState):
         # Add collision handler
         collision_handler = self.space.add_collision_handler(2, 1)
         collision_handler.pre_solve = self.ball_attractor_collision
+
+        collision_ball_box = self.space.add_collision_handler(2, 3)
+
+        def f(arbiter, space, data):
+            ps = arbiter.contact_point_set
+            arbiter.shapes[0].body.position += ps.normal * \
+                ps.points[0].distance
+        collision_ball_box.post_solve = f
+
         self.start()
 
     def getContours(self):
@@ -254,7 +263,7 @@ class GameState(BaseState):
             if (planet.body.position - p).length < planet.radius:
                 return
         # print(p, r)
-        self.planets.append(Attractor(self.space, p, r+10))
+        self.planets.append(Attractor(self.space, p, r+5))
 
     def removePlanets(self, planets):
         for p in planets:

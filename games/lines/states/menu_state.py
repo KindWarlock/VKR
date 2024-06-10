@@ -22,7 +22,7 @@ class MenuState(BaseState):
         self.background = utils.getImg(imgDir, 'bg_lines.jpg')
         self.background = pygame.transform.scale(
             self.background, self.screen.get_size())
-        utils.darken(self.background, 100)
+        utils.darken(self.background, 30)
 
     def _createMenu(self):
         self.menu = Menu('Спасение хомячков', f'Игрок: {self.player}')

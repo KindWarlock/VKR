@@ -14,7 +14,7 @@ class ModalType(Enum):
 
 class ModalWindow:
     PRINTABLE_SYMBOLS = set(
-        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%*+,-.:;<=>?@^_~ йцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ')
+        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%*+,-.:;<=>@^_~ йцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ')
     MAX_LEN = 7
 
     PADDING = (50, 30)
@@ -35,6 +35,9 @@ class ModalWindow:
 
         def getHeight(self):
             return self.items[0].getHeight()
+
+    class MenuItem(MenuItemBase):
+        ...
 
     def __init__(self, text, type=ModalType.INFO, defaultText='', colorScheme='Shooter'):
         self.text = text

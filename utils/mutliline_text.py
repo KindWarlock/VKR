@@ -1,7 +1,7 @@
-import pygame
 import numpy as np
 
 from utils.text_animation import TextAnimation
+import utils.utils as utils
 
 
 class MultilineText:
@@ -42,23 +42,38 @@ class MultilineText:
                         break
             lines.append(text[start:end].strip())
             lastEnd = end
+        lines.append(' ')
         return lines
 
-    def draw(self, surf, x, y):
-        if self.animation.state == TextAnimation.AnimationState.NONE:
-            return
-        self.size = self.animation.getNextPos()
+    def draw(self, surf, x, y, alignCenter=False):
+        if self.animation != None:
+            if self.animation.state == TextAnimation.AnimationState.NONE:
+                return
+            self.size = self.animation.getNextPos()
 
-        size = self.size.copy()
-        lineHeight = self.rendered[0].get_height()
-        for idx, line in enumerate(self.rendered):
-            width, height = size[0], size[1]
-            if size[1] >= lineHeight:
-                height = lineHeight
-            size[1] -= height
-            offsetY = (lineHeight) * idx
-            y += offsetY
-            surf.blit(line, (x, y), (0, 0, width, height))
+            size = self.size.copy()
+            lineHeight = self.rendered[0].get_height()
+            for idx, line in enumerate(self.rendered):
+                width, height = size[0], size[1]
+                if size[1] >= lineHeight:
+                    height = lineHeight
+                size[1] -= height
+                offsetY = lineHeight
+                y += offsetY
+
+                surf.blit(line, (x, y), (0, 0, width, height))
+            return
+        for line in (self.rendered):
+            if alignCenter:
+                line_rect = line.get_rect(
+                    center=utils.getCenter(surf, y=y))
+            else:
+                line_rect = line.get_rect()
+                line_rect.x = x,
+                line_rect.y = y
+            y += line_rect.height
+
+            surf.blit(line, line_rect)
 
     def getHeight(self):
         lineHeight = self.rendered[0].get_height()

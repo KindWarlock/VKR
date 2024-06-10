@@ -16,7 +16,7 @@ class Line:
         )
         # pts[:, 1] = np.fromiter((flipy(y) for y in pts[:, 1]), np.float64)
         # self.shape = pymunk.Poly(space.static_body, pts)
-        self.shape.friction = 0.99
+        self.shape.friction = 0.4
         space.add(self.shape)
         self.screen = screen
         self.space = space

@@ -20,7 +20,7 @@ class Ball:
 
         self.radius = Ball.RADIUS
         self.shape = pymunk.Circle(self.body, self.radius, (0, 0))
-        self.shape.friction = 10
+        self.shape.friction = 0.4
         self.shape.elasticity = 0.1
         self.shape.collision_type = 2
 

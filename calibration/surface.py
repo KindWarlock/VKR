@@ -4,6 +4,7 @@ import cv2
 from calibration.aruco_utils import ArucoUtils
 from calibration.calibration_window import CalibrationWindow
 import utils.utils as utils
+import utils.cv_utils as cv_utils
 
 
 class SurfaceCalibration(CalibrationWindow):
@@ -73,9 +74,9 @@ class SurfaceCalibration(CalibrationWindow):
         super().keypressed(key, unicode)
         if self.state == self.State.RUNNING:
             # self.cap = cv2.VideoCapture('http://192.168.43.1:8080/video')
-            self.cap = cv2.VideoCapture(1)
+            self.cap = cv_utils.openCam()
 
-        if self.state == None:
+        elif self.state == None:
             if isinstance(self.warpMatrix, np.ndarray):
                 self._calibToConfig()
                 cv2.destroyWindow('Markers')
